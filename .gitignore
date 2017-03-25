@@ -1,0 +1,9 @@
+vendor
+Godeps
+.env
+.idea
+
+.docker/images/proxy/certs/
+.docker/images/proxy/html/
+.docker/images/proxy/vhost.d/
+!.gitkeep

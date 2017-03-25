@@ -1,0 +1,59 @@
+# PHP
+
+version: '2'
+
+services:
+
+  #nginx-proxy:
+  #  image: jwilder/nginx-proxy:alpine
+  #  ports:
+  #    - "80:80"
+  #    - "443:443"
+  #  volumes:
+  #    - /var/run/docker.sock:/tmp/docker.sock:ro
+  #    - ./.docker/images/proxy/certs:/etc/nginx/certs:ro
+  #    - ./.docker/images/proxy/vhost.d:/etc/nginx/vhost.d
+  #    - ./.docker/images/proxy/html:/usr/share/nginx/html
+
+  #nginx-letsencrypt:
+  #  image: jrcs/letsencrypt-nginx-proxy-companion
+  #  volumes_from:
+  #    - nginx-proxy
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock:ro
+  #    - ./.docker/images/proxy/certs:/etc/nginx/certs:rw
+
+  app-dev:
+    ports:
+      - "80:80"
+    build:
+      context: .
+      dockerfile: ./.docker/images/golang/Dockerfile
+    environment:
+      MYSQL_HOSTNAME: $MYSQL_HOSTNAME
+      MYSQL_USERNAME: $MYSQL_USERNAME
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_PORT: $MYSQL_PORT
+      VIRTUAL_HOST: $VIRTUAL_HOST
+      LETSENCRYPT_HOST: $LETSENCRYPT_HOST
+      LETSENCRYPT_EMAIL: $LETSENCRYPT_EMAIL
+      APP_PORT: $APP_PORT
+    depends_on:
+      - db
+
+  # MYSQL
+  db:
+    image: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_HOSTNAME: $MYSQL_HOSTNAME
+      MYSQL_USERNAME: $MYSQL_USERNAME
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+    volumes:
+      - ./.docker/data/mysql/:/docker-entrypoint-initdb.d
+      - data_volume:/var/lib/mysql
+
+volumes:
+  data_volume:
