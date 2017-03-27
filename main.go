@@ -2,19 +2,19 @@ package main
 
 import (
     "github.com/gorilla/mux"
+    "github.com/joho/godotenv"
     "fmt"
     "os"
     "net/http"
     "io"
 
     "github.com/devigner/authorisation/auth"
-    "github.com/devigner/authorisation/utils"
     "github.com/devigner/authorisation/user"
+    "github.com/devigner/authorisation/di"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-    log := utils.GetLogger()
-    log.Info("Request:", r.RequestURI)
+    di.Container().Logger.Info("Uncaugh:", r.RequestURI)
     io.WriteString(w,fmt.Sprintf("You reach page %s",r.RequestURI))
 }
 
@@ -24,28 +24,31 @@ func NotFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-    port, ok := os.LookupEnv("APP_PORT")
-    if !ok {
-        port = "3000"
+    err := godotenv.Load()
+    if err != nil {
+        fmt.Errorf("Error env",err.Error())
     }
 
-    r := mux.NewRouter()
+    dc := di.Setup()
+    port := os.Getenv("APP_PORT")
+
+    r := dc.Router.StrictSlash(false)
     r.HandleFunc("/", handler)
-    auth.Router(r)
-    user.Router(r)
+
+    auth.Router()
+    user.Router()
 
     r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
         t, err := route.GetPathTemplate()
         if err != nil {
             return err
         }
-
-        utils.GetLogger().Info(fmt.Sprintf("Route: %s ; %s", t, route.GetName()))
+        dc.Logger.Info(fmt.Sprintf("Route: %s ; %s", t, route.GetName()))
         return nil
     })
 
     r.NotFoundHandler = http.HandlerFunc(NotFound)
 
-    utils.GetLogger().Info("App running on port:", port)
-    utils.GetLogger().Fatal(http.ListenAndServe(fmt.Sprintf(":%s",port),r))
+    dc.Logger.Info("App running on port:", port)
+    dc.Logger.Fatal(http.ListenAndServe(fmt.Sprintf(":%s",port),r))
 }

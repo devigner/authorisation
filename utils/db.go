@@ -7,10 +7,9 @@ import (
     "github.com/jmoiron/sqlx"
 )
 
-func CreateConnection() *sqlx.DB {
+func GetDbConnection() *sqlx.DB {
 
-    log := GetLogger()
-    log.Info("DB")
+
 
     var db *sqlx.DB
     var err error
@@ -22,12 +21,11 @@ func CreateConnection() *sqlx.DB {
         if err == nil {
             connected = true
         } else {
-            log.Errorln(err)
             time.Sleep(time.Minute/ 10)
         }
     }
 
-    defer db.Close()
+//    defer db.Close()
 
     return db
 }
