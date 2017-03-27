@@ -5,12 +5,13 @@ import (
     "os"
 )
 
+var logger *log.Logger
 
-
-func CreateLogger() *log.Logger {
-    logger := log.New()
-    logger.Level = log.DebugLevel
-    logger.Out = os.Stderr
-
+func Logger() *log.Logger {
+    if logger == nil {
+        logger = log.New()
+        logger.Level = log.DebugLevel
+        logger.Out = os.Stderr
+    }
     return logger
 }
